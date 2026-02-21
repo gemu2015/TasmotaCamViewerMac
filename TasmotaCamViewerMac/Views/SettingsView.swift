@@ -10,7 +10,10 @@ struct SettingsView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @State private var ipAddress: String = Constants.defaultIPAddress
+    @AppStorage("cameraIPs") private var cameraIPsJSON: String = "[\"\(Constants.defaultIPAddress)\",\"\",\"\"]"
+    @AppStorage("selectedIPIndex") private var selectedIPIndex: Int = 0
+
+    @State private var ips: [String] = []
 
     var body: some View {
         VStack(spacing: 0) {
@@ -19,7 +22,11 @@ struct SettingsView: View {
                 Text("Camera Settings")
                     .font(.headline)
                 Spacer()
-                Button("Done") { dismiss() }
+                Button("Done") {
+                    saveIPs()
+                    onConnect()
+                    dismiss()
+                }
                     .keyboardShortcut(.cancelAction)
             }
             .padding()
@@ -28,14 +35,25 @@ struct SettingsView: View {
 
             Form {
                 Section("Camera Address") {
-                    HStack {
-                        Text("IP Address")
-                            .frame(width: 90, alignment: .leading)
-                        TextField("192.168.188.88", text: $ipAddress)
-                            .textFieldStyle(.roundedBorder)
-                            .onChange(of: ipAddress) {
-                                cameraURL = "http://\(ipAddress):81\(Constants.tasmotaStreamPath)"
+                    ForEach(0..<3, id: \.self) { index in
+                        HStack {
+                            Button {
+                                selectedIPIndex = index
+                                applySelectedIP()
+                                saveIPs()
+                            } label: {
+                                Image(systemName: selectedIPIndex == index ? "circle.fill" : "circle")
+                                    .foregroundStyle(selectedIPIndex == index ? .blue : .secondary)
                             }
+                            .buttonStyle(.plain)
+
+                            Text("Cam \(index + 1)")
+                                .frame(width: 50, alignment: .leading)
+
+                            TextField("IP Address", text: binding(for: index))
+                                .textFieldStyle(.roundedBorder)
+                                .fontDesign(.monospaced)
+                        }
                     }
 
                     HStack {
@@ -98,6 +116,7 @@ struct SettingsView: View {
 
                 Section {
                     Button {
+                        saveIPs()
                         onConnect()
                         dismiss()
                     } label: {
@@ -113,16 +132,46 @@ struct SettingsView: View {
             }
             .formStyle(.grouped)
         }
-        .frame(width: 450, height: 520)
+        .frame(width: 450, height: 580)
         .onAppear {
-            parseURLComponents()
+            loadIPs()
         }
     }
 
-    /// Extract IP from the current URL for editing.
-    private func parseURLComponents() {
-        guard let url = URL(string: cameraURL),
-              let host = url.host else { return }
-        ipAddress = host
+    private func binding(for index: Int) -> Binding<String> {
+        Binding(
+            get: { index < ips.count ? ips[index] : "" },
+            set: { newValue in
+                while ips.count <= index { ips.append("") }
+                ips[index] = newValue
+                if index == selectedIPIndex {
+                    applySelectedIP()
+                }
+                saveIPs()
+            }
+        )
+    }
+
+    private func loadIPs() {
+        if let data = cameraIPsJSON.data(using: .utf8),
+           let decoded = try? JSONDecoder().decode([String].self, from: data) {
+            ips = decoded
+        }
+        while ips.count < 3 { ips.append("") }
+    }
+
+    private func saveIPs() {
+        while ips.count < 3 { ips.append("") }
+        if let data = try? JSONEncoder().encode(Array(ips.prefix(3))),
+           let json = String(data: data, encoding: .utf8) {
+            cameraIPsJSON = json
+        }
+    }
+
+    private func applySelectedIP() {
+        guard selectedIPIndex < ips.count else { return }
+        let ip = ips[selectedIPIndex]
+        guard !ip.isEmpty else { return }
+        cameraURL = "http://\(ip):81\(Constants.tasmotaStreamPath)"
     }
 }
