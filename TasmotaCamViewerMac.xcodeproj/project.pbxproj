@@ -24,6 +24,8 @@
 		A100000F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000F; };
 		A1000010 /* CameraToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000010; };
 		A1000011 /* SnapshotPreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000011; };
+		A5F00002 /* StreamRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5F00001; };
+		A5F00004 /* RecordingSavedBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5F00003; };
 		A1000012 /* AudioControlsOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000012; };
 		A1000013 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000013; };
 		A1000014 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000014; };
@@ -47,6 +49,8 @@
 		A200000F /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A2000010 /* CameraToolbarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraToolbarView.swift; sourceTree = "<group>"; };
 		A2000011 /* SnapshotPreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotPreviewSheet.swift; sourceTree = "<group>"; };
+		A5F00001 /* StreamRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamRecorder.swift; sourceTree = "<group>"; };
+		A5F00003 /* RecordingSavedBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingSavedBanner.swift; sourceTree = "<group>"; };
 		A2000012 /* AudioControlsOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioControlsOverlay.swift; sourceTree = "<group>"; };
 		A2000013 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		A2000014 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -66,6 +70,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A5F00005 /* Recording */ = {
+			isa = PBXGroup;
+			children = (
+				A5F00001 /* StreamRecorder.swift */,
+			);
+			path = Recording;
+			sourceTree = "<group>";
+		};
 		A5000001 = {
 			isa = PBXGroup;
 			children = (
@@ -82,6 +94,7 @@
 				A5000003 /* Models */,
 				A5000004 /* Networking */,
 				A5000005 /* Audio */,
+				A5F00005 /* Recording */,
 				A5000006 /* Views */,
 				A5000007 /* Utilities */,
 				A5000009 /* Resources */,
@@ -131,6 +144,7 @@
 				A2000010 /* CameraToolbarView.swift */,
 				A2000011 /* SnapshotPreviewSheet.swift */,
 				A2000012 /* AudioControlsOverlay.swift */,
+				A5F00003 /* RecordingSavedBanner.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -246,6 +260,8 @@
 				A1000010 /* CameraToolbarView.swift in Sources */,
 				A1000011 /* SnapshotPreviewSheet.swift in Sources */,
 				A1000012 /* AudioControlsOverlay.swift in Sources */,
+				A5F00002 /* StreamRecorder.swift in Sources */,
+				A5F00004 /* RecordingSavedBanner.swift in Sources */,
 				A1000013 /* Constants.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

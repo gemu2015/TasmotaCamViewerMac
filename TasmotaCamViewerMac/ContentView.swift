@@ -5,6 +5,9 @@ import UserNotifications
 struct ContentView: View {
     @State private var stream = MJPEGStream()
     @State private var audio = AudioBridge()
+    @State private var recorder = StreamRecorder()
+    @State private var savedURL: URL?
+    @State private var recordError: String?
     @State private var showSettings = false
     @State private var lightOn = false
 
@@ -54,6 +57,16 @@ struct ContentView: View {
                 .animation(.easeInOut, value: audio.isRinging)
             }
 
+            // Recording saved banner (top)
+            if let url = savedURL {
+                VStack {
+                    RecordingSavedBanner(url: url) { savedURL = nil }
+                        .padding(.top, 60)
+                    Spacer()
+                }
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+
             // Audio controls overlay (bottom)
             if audioEnabled {
                 VStack {
@@ -67,10 +80,12 @@ struct ContentView: View {
             CameraToolbarView(
                 stream: stream,
                 audio: audio,
+                recorder: recorder,
                 audioEnabled: $audioEnabled,
                 lightOn: $lightOn,
                 showSettings: $showSettings,
-                onToggleLight: { toggleLight() }
+                onToggleLight: { toggleLight() },
+                onToggleRecording: { toggleRecording() }
             )
         }
         .navigationTitle("TasmotaCam")
@@ -98,6 +113,10 @@ struct ContentView: View {
         // Auto-connect on launch
         .onAppear {
             audio.autoListen = autoListenOnConnect
+            stream.onFrame = { [recorder] frame in recorder.appendVideo(frame) }
+            audio.onReceivedAudio = { [recorder] data in
+                recorder.appendAudio(data, gain: Float(UserDefaults.standard.object(forKey: "speakerVolume") as? Double ?? 1.0))
+            }
             setupRingNotification()
             if autoConnect && !cameraURL.isEmpty {
                 stream.connect(to: cameraURL)
@@ -115,6 +134,7 @@ struct ContentView: View {
         }
         // Shut down audio bridge when the app is terminated
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+            recorder.stop()
             audio.disconnect()
         }
         // React to audioEnabled toggle
@@ -128,6 +148,16 @@ struct ContentView: View {
                 audio.disconnect()
             }
         }
+        // Recording finished or failed
+        .onChange(of: recorder.lastFileURL) { _, url in
+            if let url { withAnimation { savedURL = url } }
+        }
+        .alert("Recording", isPresented: Binding(get: { recordError != nil }, set: { if !$0 { recordError = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(recordError ?? "")
+        }
+        .onChange(of: recorder.lastError) { _, e in recordError = e }
         // Sync speaker volume
         .onChange(of: speakerVolume) { _, newValue in
             audio.speakerVolume = Float(newValue)
@@ -140,6 +170,22 @@ struct ContentView: View {
         .onChange(of: autoListenOnConnect) { _, newValue in
             audio.autoListen = newValue
         }
+    }
+
+    /// Start or stop recording. Starting also switches the camera microphone on so the file gets sound.
+    private func toggleRecording() {
+        if recorder.isRecording {
+            recorder.stop()
+            return
+        }
+        guard stream.state == .streaming else { return }
+        savedURL = nil
+        if !audioEnabled {
+            audioEnabled = true          // connects the audio bridge once the stream is up (already is)
+        } else if audio.state == .idle {
+            audio.startListening()
+        }
+        recorder.start()
     }
 
     /// Connect audio bridge if enabled and a host is available.
