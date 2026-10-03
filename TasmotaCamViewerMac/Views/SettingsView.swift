@@ -143,7 +143,8 @@ struct SettingsView: View {
             get: { index < ips.count ? ips[index] : "" },
             set: { newValue in
                 while ips.count <= index { ips.append("") }
-                ips[index] = newValue
+                // A German keyboard layout offers a comma where an IP address needs a point.
+                ips[index] = newValue.replacingOccurrences(of: ",", with: ".")
                 if index == selectedIPIndex {
                     applySelectedIP()
                 }
